@@ -1,3 +1,5 @@
+import 'features/auth/login_screen.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -19,15 +21,7 @@ class ShilpSetuApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ShilpSetu',
-      home: Scaffold(
-        appBar: AppBar(title: const Text('ShilpSetu')),
-        body: const Center(
-          child: Text(
-            'Firebase Connected Successfully!',
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
-      ),
+      home: const LoginScreen(),
     );
   }
 }
