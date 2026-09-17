@@ -14,6 +14,9 @@ class BuyerProfileScreen extends StatefulWidget {
 class _BuyerProfileScreenState extends State<BuyerProfileScreen> {
   final BuyerProfileService _profileService = BuyerProfileService();
 
+  bool isLoading = true;
+  bool profileExists = false;
+
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
@@ -24,18 +27,71 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen> {
 
   String message = '';
 
+  @override
+  void initState() {
+    super.initState();
+    loadProfile();
+  }
+
+  Future<void> loadProfile() async {
+    try {
+      final profile = await _profileService.getProfile(widget.uid);
+
+      if (profile.exists) {
+        final data = profile.data();
+
+        if (data != null) {
+          nameController.text = data['name'] ?? '';
+          emailController.text = data['email'] ?? '';
+          phoneController.text = data['phone'] ?? '';
+          locationController.text = data['location'] ?? '';
+          organizationController.text = data['organization'] ?? '';
+          interestController.text = data['interest'] ?? '';
+          bioController.text = data['bio'] ?? '';
+        }
+
+        profileExists = true;
+      }
+    } catch (e) {
+      message = 'Failed to load profile: $e';
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   Future<void> saveProfile() async {
     try {
-      await _profileService.createProfile(
-        uid: widget.uid,
-        name: nameController.text.trim(),
-        email: emailController.text.trim(),
-        phone: phoneController.text.trim(),
-        location: locationController.text.trim(),
-        organization: organizationController.text.trim(),
-        interest: interestController.text.trim(),
-        bio: bioController.text.trim(),
-      );
+      if (profileExists) {
+        await _profileService.updateProfile(
+          uid: widget.uid,
+          data: {
+            'name': nameController.text.trim(),
+            'email': emailController.text.trim(),
+            'phone': phoneController.text.trim(),
+            'location': locationController.text.trim(),
+            'organization': organizationController.text.trim(),
+            'interest': interestController.text.trim(),
+            'bio': bioController.text.trim(),
+          },
+        );
+      } else {
+        await _profileService.createProfile(
+          uid: widget.uid,
+          name: nameController.text.trim(),
+          email: emailController.text.trim(),
+          phone: phoneController.text.trim(),
+          location: locationController.text.trim(),
+          organization: organizationController.text.trim(),
+          interest: interestController.text.trim(),
+          bio: bioController.text.trim(),
+        );
+
+        profileExists = true;
+      }
 
       if (!mounted) return;
 
@@ -67,83 +123,87 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Buyer Profile')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Full Name'),
-            ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Full Name'),
+                  ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-            TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
+                  TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                  ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-            TextField(
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Phone Number'),
-            ),
+                  TextField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone Number',
+                    ),
+                  ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-            TextField(
-              controller: locationController,
-              decoration: const InputDecoration(labelText: 'Location'),
-            ),
+                  TextField(
+                    controller: locationController,
+                    decoration: const InputDecoration(labelText: 'Location'),
+                  ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-            TextField(
-              controller: organizationController,
-              decoration: const InputDecoration(
-                labelText: 'Organization / Business',
+                  TextField(
+                    controller: organizationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Organization / Business',
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  TextField(
+                    controller: interestController,
+                    decoration: const InputDecoration(
+                      labelText: 'Product / Craft Interest',
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  TextField(
+                    controller: bioController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Bio',
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: saveProfile,
+                      child: const Text('Save Profile'),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Text(message),
+                ],
               ),
             ),
-
-            const SizedBox(height: 15),
-
-            TextField(
-              controller: interestController,
-              decoration: const InputDecoration(
-                labelText: 'Product / Craft Interest',
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            TextField(
-              controller: bioController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Bio',
-                alignLabelWithHint: true,
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: saveProfile,
-                child: const Text('Save Profile'),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Text(message),
-          ],
-        ),
-      ),
     );
   }
 }
