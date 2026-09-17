@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../artisan/artisan_dashboard.dart';
+import '../buyer/buyer_dashboard.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -40,10 +42,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: user.email ?? emailController.text.trim(),
         role: selectedRole,
       );
+      if (!mounted) return;
 
-      setState(() {
-        message = 'Registration successful!';
-      });
+      if (selectedRole == 'artisan') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ArtisanDashboard()),
+        );
+      } else if (selectedRole == 'buyer') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const BuyerDashboard()),
+        );
+      }
     } catch (e) {
       setState(() {
         message = 'Registration failed: $e';
