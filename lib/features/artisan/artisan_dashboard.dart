@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../services/artisan_profile_service.dart';
 import 'add_product_screen.dart';
 import 'artisan_profile_screen.dart';
+import 'my_products_screen.dart';
 
 class ArtisanDashboard extends StatefulWidget {
   const ArtisanDashboard({super.key});
@@ -77,6 +78,13 @@ class _ArtisanDashboardState extends State<ArtisanDashboard> {
     );
   }
 
+  void openMyProducts() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MyProductsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,6 +122,15 @@ class _ArtisanDashboardState extends State<ArtisanDashboard> {
                     child: ElevatedButton(
                       onPressed: openAddProduct,
                       child: const Text('Add Product'),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: openMyProducts,
+                      child: const Text('My Products'),
                     ),
                   ),
                 ],
