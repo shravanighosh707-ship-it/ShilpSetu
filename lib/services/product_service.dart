@@ -32,6 +32,13 @@ class ProductService {
         .get();
   }
 
+  Future<QuerySnapshot<Map<String, dynamic>>> getAllProducts() async {
+    return await _firestore
+        .collection('products')
+        .orderBy('createdAt', descending: true)
+        .get();
+  }
+
   Future<void> updateProduct({
     required String productId,
     required Map<String, dynamic> data,

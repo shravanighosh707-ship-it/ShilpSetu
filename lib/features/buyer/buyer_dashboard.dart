@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'explore_products_screen.dart';
 import '../../services/buyer_profile_service.dart';
 import 'buyer_profile_screen.dart';
 
@@ -107,7 +108,12 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Explore Products will be added next.
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ExploreProductsScreen(),
+                          ),
+                        );
                       },
                       child: const Text('Explore Products'),
                     ),
