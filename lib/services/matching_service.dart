@@ -104,10 +104,12 @@ class MatchingService {
         score += 30;
       }
 
-      // Budget: 25 points.
-      if (productPrice >= budgetMin && productPrice <= budgetMax) {
-        score += 25;
-      }
+      // Budget: up to 25 points.
+      score += _calculateBudgetScore(
+        productPrice: productPrice,
+        budgetMin: budgetMin,
+        budgetMax: budgetMax,
+      );
 
       // Location: 15 points.
       if (_matches(artisanLocation, requiredLocation)) {
@@ -137,6 +139,72 @@ class MatchingService {
     );
 
     return matches;
+  }
+
+  /// Calculates up to 25 points based on how well
+  /// the product price fits the buyer's budget.
+  double _calculateBudgetScore({
+    required double productPrice,
+    required double budgetMin,
+    required double budgetMax,
+  }) {
+    // Invalid budget.
+    if (budgetMax < budgetMin || budgetMax <= 0) {
+      return 0;
+    }
+
+    // Perfect match: product is inside the requested budget.
+    if (productPrice >= budgetMin && productPrice <= budgetMax) {
+      return 25;
+    }
+
+    // Product is below the requested budget.
+    if (productPrice < budgetMin) {
+      final difference = budgetMin - productPrice;
+
+      if (budgetMin == 0) {
+        return 0;
+      }
+
+      final percentageDifference = difference / budgetMin;
+
+      if (percentageDifference <= 0.10) {
+        return 20;
+      }
+
+      if (percentageDifference <= 0.25) {
+        return 15;
+      }
+
+      if (percentageDifference <= 0.50) {
+        return 8;
+      }
+
+      return 0;
+    }
+
+    // Product is above the requested budget.
+    final difference = productPrice - budgetMax;
+
+    if (budgetMax == 0) {
+      return 0;
+    }
+
+    final percentageDifference = difference / budgetMax;
+
+    if (percentageDifference <= 0.10) {
+      return 20;
+    }
+
+    if (percentageDifference <= 0.25) {
+      return 15;
+    }
+
+    if (percentageDifference <= 0.50) {
+      return 8;
+    }
+
+    return 0;
   }
 
   bool _matches(String value1, String value2) {
