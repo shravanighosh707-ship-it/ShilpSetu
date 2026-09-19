@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'artisan_matching_service.dart';
 import 'matching_engine.dart';
 
 class MatchingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final MatchingEngine _engine = MatchingEngine();
+  final ArtisanMatchingService _matchingService = ArtisanMatchingService();
 
   /// Finds products from one or more artisans that can collectively
   /// satisfy a buyer requirement.
@@ -84,23 +86,19 @@ class MatchingService {
     }
 
     // ----------------------------------------------------------
-    // 4. LOAD ARTISAN LOCATIONS
+    // 4. LOAD SECURE ARTISAN MATCHING DATA
     // ----------------------------------------------------------
+    //
+    // IMPORTANT:
+    // We no longer read artisan_profiles here.
+    //
+    // artisan_profiles contains private information.
+    // artisan_matching contains only information required
+    // by the matching engine.
+    //
 
-    final Map<String, String> artisanLocations = {};
-
-    for (final artisanId in artisanIds) {
-      final artisanSnapshot = await _firestore
-          .collection('artisan_profiles')
-          .doc(artisanId)
-          .get();
-
-      if (artisanSnapshot.exists) {
-        final artisan = artisanSnapshot.data();
-
-        artisanLocations[artisanId] = (artisan?['location'] ?? '').toString();
-      }
-    }
+    final Map<String, String> artisanLocations = await _matchingService
+        .getArtisanLocations(artisanIds);
 
     // ----------------------------------------------------------
     // 5. BUILD MATCHING CANDIDATES
@@ -130,7 +128,7 @@ class MatchingService {
       final String artisanLocation = artisanLocations[artisanId] ?? '';
 
       // --------------------------------------------------------
-      // USE MATCHING ENGINE
+      // CALCULATE MATCH SCORE
       // --------------------------------------------------------
 
       final double matchScore = _engine.calculateMatchScore(

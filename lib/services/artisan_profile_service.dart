@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'artisan_matching_service.dart';
+
 class ArtisanProfileService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ArtisanMatchingService _matchingService = ArtisanMatchingService();
 
   Future<void> createProfile({
     required String uid,
@@ -25,6 +28,11 @@ class ArtisanProfileService {
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    await _matchingService.createOrUpdateMatchingProfile(
+      artisanId: uid,
+      location: location,
+    );
   }
 
   Future<DocumentSnapshot<Map<String, dynamic>>> getProfile(String uid) async {
@@ -39,5 +47,12 @@ class ArtisanProfileService {
       ...data,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    if (data.containsKey('location')) {
+      await _matchingService.createOrUpdateMatchingProfile(
+        artisanId: uid,
+        location: data['location'].toString(),
+      );
+    }
   }
 }
