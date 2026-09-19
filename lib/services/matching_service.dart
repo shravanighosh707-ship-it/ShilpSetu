@@ -15,7 +15,7 @@ class MatchingService {
   Future<List<Map<String, dynamic>>> findMatches({
     required String requirementId,
   }) async {
-    // Get requirement
+    // 1. Get buyer requirement.
     final requirementSnapshot = await _firestore
         .collection('requirements')
         .doc(requirementId)
@@ -44,9 +44,39 @@ class MatchingService {
 
     final String requiredLocation = (requirement['location'] ?? '').toString();
 
-    // Get products
+    // 2. Get all products.
     final productsSnapshot = await _firestore.collection('products').get();
 
+    // 3. Collect unique artisan IDs.
+    final Set<String> artisanIds = {};
+
+    for (final productDocument in productsSnapshot.docs) {
+      final product = productDocument.data();
+
+      final String artisanId = (product['artisanId'] ?? '').toString();
+
+      if (artisanId.isNotEmpty) {
+        artisanIds.add(artisanId);
+      }
+    }
+
+    // 4. Load artisan profiles once.
+    final Map<String, String> artisanLocations = {};
+
+    for (final artisanId in artisanIds) {
+      final artisanSnapshot = await _firestore
+          .collection('artisan_profiles')
+          .doc(artisanId)
+          .get();
+
+      if (artisanSnapshot.exists) {
+        final artisan = artisanSnapshot.data();
+
+        artisanLocations[artisanId] = (artisan?['location'] ?? '').toString();
+      }
+    }
+
+    // 5. Calculate product matches.
     final List<Map<String, dynamic>> matches = [];
 
     for (final productDocument in productsSnapshot.docs) {
@@ -60,41 +90,28 @@ class MatchingService {
 
       final String artisanId = (product['artisanId'] ?? '').toString();
 
+      final String artisanLocation = artisanLocations[artisanId] ?? '';
+
       double score = 0;
 
-      // Category: 30 points
+      // Category: 30 points.
       if (_matches(productCategory, requiredCategory)) {
         score += 30;
       }
 
-      // Craft type: 30 points
+      // Craft type: 30 points.
       if (_matches(productCraftType, requiredCraftType)) {
         score += 30;
       }
 
-      // Budget: 25 points
+      // Budget: 25 points.
       if (productPrice >= budgetMin && productPrice <= budgetMax) {
         score += 25;
       }
 
-      // Location: 15 points
-      String artisanLocation = '';
-
-      if (artisanId.isNotEmpty) {
-        final artisanSnapshot = await _firestore
-            .collection('artisan_profiles')
-            .doc(artisanId)
-            .get();
-
-        if (artisanSnapshot.exists) {
-          final artisan = artisanSnapshot.data();
-
-          artisanLocation = (artisan?['location'] ?? '').toString();
-
-          if (_matches(artisanLocation, requiredLocation)) {
-            score += 15;
-          }
-        }
+      // Location: 15 points.
+      if (_matches(artisanLocation, requiredLocation)) {
+        score += 15;
       }
 
       // Keep products with at least one matching factor.
@@ -113,7 +130,7 @@ class MatchingService {
       }
     }
 
-    // Highest score first.
+    // 6. Highest score first.
     matches.sort(
       (a, b) =>
           (b['matchScore'] as double).compareTo(a['matchScore'] as double),
