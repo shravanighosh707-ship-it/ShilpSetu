@@ -11,6 +11,7 @@ class ProductService {
     required String category,
     required String craftType,
     required double price,
+    int availableQuantity = 0,
   }) async {
     await _firestore.collection('products').add({
       'artisanId': artisanId,
@@ -19,6 +20,7 @@ class ProductService {
       'category': category,
       'craftType': craftType,
       'price': price,
+      'availableQuantity': availableQuantity,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
