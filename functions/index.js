@@ -4,11 +4,18 @@ const {setGlobalOptions} = require("firebase-functions");
 const {onCall} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
 const {GoogleGenAI} = require("@google/genai");
+const {v2: cloudinary} = require("cloudinary");
 
 setGlobalOptions({maxInstances: 10});
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
+});
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 exports.generateProductCatalog = onCall(async (request) => {
@@ -93,5 +100,41 @@ The result is only a suggestion and will be reviewed by the artisan.
     });
 
     throw new Error("Failed to generate product catalog.");
+  }
+});
+
+exports.uploadProductImage = onCall(async (request) => {
+  if (!request.auth) {
+    throw new Error("Authentication required.");
+  }
+
+  const {imageBase64, mimeType} = request.data || {};
+
+  if (!imageBase64) {
+    throw new Error("Product image is required.");
+  }
+
+  const imageType = mimeType || "image/jpeg";
+
+  try {
+    const result = await cloudinary.uploader.upload(
+        `data:${imageType};base64,${imageBase64}`,
+        {
+          folder: `shilpsetu/products/${request.auth.uid}`,
+          resource_type: "image",
+        },
+    );
+
+    return {
+      success: true,
+      imageUrl: result.secure_url,
+      publicId: result.public_id,
+    };
+  } catch (error) {
+    logger.error("Cloudinary image upload failed", {
+      message: error.message,
+    });
+
+    throw new Error("Failed to upload product image.");
   }
 });

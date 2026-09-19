@@ -12,6 +12,8 @@ class ProductService {
     required String craftType,
     required double price,
     int availableQuantity = 0,
+    String? imageUrl,
+    String? imagePublicId,
   }) async {
     await _firestore.collection('products').add({
       'artisanId': artisanId,
@@ -21,6 +23,8 @@ class ProductService {
       'craftType': craftType,
       'price': price,
       'availableQuantity': availableQuantity,
+      'imageUrl': imageUrl,
+      'imagePublicId': imagePublicId,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -53,22 +57,18 @@ class ProductService {
   }) async {
     Query<Map<String, dynamic>> query = _firestore.collection('products');
 
-    // Filter by category
     if (category != null && category.isNotEmpty) {
       query = query.where('category', isEqualTo: category);
     }
 
-    // Filter by craft type
     if (craftType != null && craftType.isNotEmpty) {
       query = query.where('craftType', isEqualTo: craftType);
     }
 
-    // Filter by minimum price
     if (minPrice != null) {
       query = query.where('price', isGreaterThanOrEqualTo: minPrice);
     }
 
-    // Filter by maximum price
     if (maxPrice != null) {
       query = query.where('price', isLessThanOrEqualTo: maxPrice);
     }
