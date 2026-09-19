@@ -1,21 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'matching_engine.dart';
+
 class MatchingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final MatchingEngine _engine = MatchingEngine();
 
-  /// Finds products that match a buyer requirement.
-  ///
-  /// Matching weights:
-  /// Category   = 30
-  /// Craft type = 30
-  /// Budget     = 25
-  /// Location   = 15
-  ///
-  /// Maximum score = 100
-  Future<List<Map<String, dynamic>>> findMatches({
+  /// Finds products from one or more artisans that can collectively
+  /// satisfy a buyer requirement.
+  Future<Map<String, dynamic>> findMatches({
     required String requirementId,
   }) async {
-    // 1. Get buyer requirement.
+    // ----------------------------------------------------------
+    // 1. GET BUYER REQUIREMENT
+    // ----------------------------------------------------------
+
     final requirementSnapshot = await _firestore
         .collection('requirements')
         .doc(requirementId)
@@ -31,6 +30,13 @@ class MatchingService {
       throw Exception('Requirement data is empty.');
     }
 
+    final int requiredQuantity =
+        (requirement['quantity'] as num?)?.toInt() ?? 0;
+
+    if (requiredQuantity <= 0) {
+      throw Exception('Requirement quantity must be greater than zero.');
+    }
+
     final String requiredCategory = (requirement['category'] ?? '').toString();
 
     final String requiredCraftType = (requirement['craftType'] ?? '')
@@ -44,10 +50,27 @@ class MatchingService {
 
     final String requiredLocation = (requirement['location'] ?? '').toString();
 
-    // 2. Get all products.
+    // ----------------------------------------------------------
+    // 2. GET ALL PRODUCTS
+    // ----------------------------------------------------------
+
     final productsSnapshot = await _firestore.collection('products').get();
 
-    // 3. Collect unique artisan IDs.
+    if (productsSnapshot.docs.isEmpty) {
+      return {
+        'requirementId': requirementId,
+        'requiredQuantity': requiredQuantity,
+        'matchedQuantity': 0,
+        'remainingQuantity': requiredQuantity,
+        'fullyMatched': false,
+        'matches': <Map<String, dynamic>>[],
+      };
+    }
+
+    // ----------------------------------------------------------
+    // 3. COLLECT UNIQUE ARTISAN IDS
+    // ----------------------------------------------------------
+
     final Set<String> artisanIds = {};
 
     for (final productDocument in productsSnapshot.docs) {
@@ -60,7 +83,10 @@ class MatchingService {
       }
     }
 
-    // 4. Load artisan profiles once.
+    // ----------------------------------------------------------
+    // 4. LOAD ARTISAN LOCATIONS
+    // ----------------------------------------------------------
+
     final Map<String, String> artisanLocations = {};
 
     for (final artisanId in artisanIds) {
@@ -76,11 +102,24 @@ class MatchingService {
       }
     }
 
-    // 5. Calculate product matches.
-    final List<Map<String, dynamic>> matches = [];
+    // ----------------------------------------------------------
+    // 5. BUILD MATCHING CANDIDATES
+    // ----------------------------------------------------------
+
+    final List<Map<String, dynamic>> candidates = [];
 
     for (final productDocument in productsSnapshot.docs) {
       final product = productDocument.data();
+
+      final String artisanId = (product['artisanId'] ?? '').toString();
+
+      final int availableQuantity =
+          (product['availableQuantity'] as num?)?.toInt() ?? 0;
+
+      // Ignore products with no available supply.
+      if (availableQuantity <= 0) {
+        continue;
+      }
 
       final String productCategory = (product['category'] ?? '').toString();
 
@@ -88,130 +127,51 @@ class MatchingService {
 
       final double productPrice = (product['price'] as num?)?.toDouble() ?? 0;
 
-      final String artisanId = (product['artisanId'] ?? '').toString();
-
       final String artisanLocation = artisanLocations[artisanId] ?? '';
 
-      double score = 0;
+      // --------------------------------------------------------
+      // USE MATCHING ENGINE
+      // --------------------------------------------------------
 
-      // Category: 30 points.
-      if (_matches(productCategory, requiredCategory)) {
-        score += 30;
-      }
-
-      // Craft type: 30 points.
-      if (_matches(productCraftType, requiredCraftType)) {
-        score += 30;
-      }
-
-      // Budget: up to 25 points.
-      score += _calculateBudgetScore(
+      final double matchScore = _engine.calculateMatchScore(
+        productCategory: productCategory,
+        requiredCategory: requiredCategory,
+        productCraftType: productCraftType,
+        requiredCraftType: requiredCraftType,
         productPrice: productPrice,
         budgetMin: budgetMin,
         budgetMax: budgetMax,
+        artisanLocation: artisanLocation,
+        requiredLocation: requiredLocation,
       );
 
-      // Location: 15 points.
-      if (_matches(artisanLocation, requiredLocation)) {
-        score += 15;
+      // Ignore completely unrelated products.
+      if (matchScore <= 0) {
+        continue;
       }
 
-      // Keep products with at least one matching factor.
-      if (score > 0) {
-        matches.add({
-          'productId': productDocument.id,
-          'artisanId': artisanId,
-          'productName': product['name'],
-          'description': product['description'],
-          'category': productCategory,
-          'craftType': productCraftType,
-          'price': productPrice,
-          'artisanLocation': artisanLocation,
-          'matchScore': score,
-        });
-      }
+      candidates.add({
+        'productId': productDocument.id,
+        'artisanId': artisanId,
+        'productName': product['name'],
+        'description': product['description'],
+        'category': productCategory,
+        'craftType': productCraftType,
+        'price': productPrice,
+        'availableQuantity': availableQuantity,
+        'artisanLocation': artisanLocation,
+        'matchScore': matchScore,
+      });
     }
 
-    // 6. Highest score first.
-    matches.sort(
-      (a, b) =>
-          (b['matchScore'] as double).compareTo(a['matchScore'] as double),
+    // ----------------------------------------------------------
+    // 6. ALLOCATE QUANTITY USING MATCHING ENGINE
+    // ----------------------------------------------------------
+
+    return _engine.allocateQuantity(
+      requirementId: requirementId,
+      requiredQuantity: requiredQuantity,
+      candidates: candidates,
     );
-
-    return matches;
-  }
-
-  /// Calculates up to 25 points based on how well
-  /// the product price fits the buyer's budget.
-  double _calculateBudgetScore({
-    required double productPrice,
-    required double budgetMin,
-    required double budgetMax,
-  }) {
-    // Invalid budget.
-    if (budgetMax < budgetMin || budgetMax <= 0) {
-      return 0;
-    }
-
-    // Perfect match: product is inside the requested budget.
-    if (productPrice >= budgetMin && productPrice <= budgetMax) {
-      return 25;
-    }
-
-    // Product is below the requested budget.
-    if (productPrice < budgetMin) {
-      final difference = budgetMin - productPrice;
-
-      if (budgetMin == 0) {
-        return 0;
-      }
-
-      final percentageDifference = difference / budgetMin;
-
-      if (percentageDifference <= 0.10) {
-        return 20;
-      }
-
-      if (percentageDifference <= 0.25) {
-        return 15;
-      }
-
-      if (percentageDifference <= 0.50) {
-        return 8;
-      }
-
-      return 0;
-    }
-
-    // Product is above the requested budget.
-    final difference = productPrice - budgetMax;
-
-    if (budgetMax == 0) {
-      return 0;
-    }
-
-    final percentageDifference = difference / budgetMax;
-
-    if (percentageDifference <= 0.10) {
-      return 20;
-    }
-
-    if (percentageDifference <= 0.25) {
-      return 15;
-    }
-
-    if (percentageDifference <= 0.50) {
-      return 8;
-    }
-
-    return 0;
-  }
-
-  bool _matches(String value1, String value2) {
-    if (value1.isEmpty || value2.isEmpty) {
-      return false;
-    }
-
-    return value1.trim().toLowerCase() == value2.trim().toLowerCase();
   }
 }
