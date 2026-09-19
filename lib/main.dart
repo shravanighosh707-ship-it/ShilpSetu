@@ -303,12 +303,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       height: 54,
                       child: ElevatedButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Welcome to ShilpSetu!'),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RoleSelectionScreen(),
                             ),
                           );
                         },
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFD4AF6A),
                           foregroundColor: const Color(0xFF051A37),
@@ -403,6 +405,413 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               color: Colors.white54,
               size: 30,
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+class RoleSelectionScreen extends StatelessWidget {
+  const RoleSelectionScreen({super.key});
+
+  static const Color navy = Color(0xFF051A37);
+  static const Color cardColor = Color(0xFF0B2A50);
+  static const Color gold = Color(0xFFD4AF6A);
+  static const Color cream = Color(0xFFF4E8D0);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        foregroundColor: cream,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Choose Your Role',
+          style: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 30),
+          child: Column(
+            children: [
+              // Header icon
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: gold.withOpacity(0.12),
+                  border: Border.all(
+                    color: gold.withOpacity(0.45),
+                    width: 1.2,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.diversity_3_rounded,
+                  color: gold,
+                  size: 42,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              const Text(
+                'Welcome to ShilpSetu',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: cream,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                'How would you like to use ShilpSetu?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                'Choose an option to get started.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: gold,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              // Image above the role cards
+              Image.asset(
+                'assets/artworks/traditional.png',
+                 width: double.infinity,
+                 height: 150,
+                 fit: BoxFit.contain,
+              ),
+
+              const SizedBox(height: 24),
+
+
+              // Artisan card
+              _roleCard(
+                context: context,
+                icon: Icons.handyman_rounded,
+                title: 'I am an Artisan',
+                subtitle: 'Showcase your craftsmanship',
+                description:
+                    'Create your catalog, display your products, '
+                    'and connect with potential buyers.',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ArtisanDashboard(),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 22),
+
+              // Buyer card
+              _roleCard(
+                context: context,
+                icon: Icons.shopping_bag_rounded,
+                title: 'I am a Buyer',
+                subtitle: 'Discover unique handmade crafts',
+                description:
+                    'Explore authentic products and connect '
+                    'with talented artisans.',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Buyer features coming soon!'),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 30),
+
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    color: Colors.white38,
+                    size: 14,
+                  ),
+                  SizedBox(width: 6),
+                  Text(
+                    'You can change your role later',
+                    style: TextStyle(
+                      color: Colors.white38,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _roleCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        splashColor: gold.withOpacity(0.12),
+        highlightColor: gold.withOpacity(0.05),
+        child: Ink(
+          width: double.infinity,
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: gold.withOpacity(0.45),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.18),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: gold.withOpacity(0.13),
+                ),
+                child: Icon(
+                  icon,
+                  color: gold,
+                  size: 42,
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: cream,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: gold,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                description,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: gold.withOpacity(0.6),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Continue',
+                      style: TextStyle(
+                        color: cream,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: gold,
+                      size: 17,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+class ArtisanDashboard extends StatelessWidget {
+  const ArtisanDashboard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF051A37),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF051A37),
+        foregroundColor: const Color(0xFFF4E8D0),
+        elevation: 0,
+        title: const Text(
+          'Artisan Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Welcome, Artisan! 👋',
+              style: TextStyle(
+                color: Color(0xFFF4E8D0),
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            const Text(
+              'Showcase your craftsmanship and reach more buyers.',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            _dashboardCard(
+              context,
+              Icons.add_a_photo_rounded,
+              'Add Your Craft',
+              'Upload photos and details of your handmade products.',
+            ),
+
+            _dashboardCard(
+              context,
+              Icons.auto_awesome_rounded,
+              'AI Cataloging',
+              'Generate product descriptions using AI.',
+            ),
+
+            _dashboardCard(
+              context,
+              Icons.currency_rupee_rounded,
+              'Smart Pricing',
+              'Get assistance with pricing your products.',
+            ),
+
+            _dashboardCard(
+              context,
+              Icons.people_alt_rounded,
+              'Find Buyers',
+              'Connect with potential buyers and retailers.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _dashboardCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String description,
+  ) {
+    return Card(
+      color: const Color(0xFF0B2A50),
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Icon(
+          icon,
+          color: const Color(0xFFD4AF6A),
+          size: 32,
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFFF4E8D0),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          description,
+          style: const TextStyle(color: Colors.white70),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: Color(0xFFD4AF6A),
+          size: 16,
+        ),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$title selected!')),
           );
         },
       ),
