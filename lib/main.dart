@@ -1,121 +1,410 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ShilpSetuApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ShilpSetuApp extends StatelessWidget {
+  const ShilpSetuApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'ShilpSetu',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: 'Poppins',
+        scaffoldBackgroundColor: const Color(0xFF051A37),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const WelcomeScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  late Animation<Offset> _madhubaniAnimation;
+  late Animation<Offset> _handloomAnimation;
+  late Animation<Offset> _lotusAnimation;
+  late Animation<Offset> _peacockAnimation;
+  late Animation<Offset> _woodcraftAnimation;
+  late Animation<Offset> _elephantAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+
+    _madhubaniAnimation = _createSlideAnimation(
+      const Offset(-1.5, 0),
+      const Offset(0, 0),
+      0.0,
+    );
+
+    _handloomAnimation = _createSlideAnimation(
+      const Offset(1.5, -0.5),
+      const Offset(0, 0),
+      0.1,
+    );
+
+    _lotusAnimation = _createSlideAnimation(
+      const Offset(-1.5, 0),
+      const Offset(0, 0),
+      0.2,
+    );
+
+    _peacockAnimation = _createSlideAnimation(
+      const Offset(1.5, 0),
+      const Offset(0, 0),
+      0.3,
+    );
+
+    _woodcraftAnimation = _createSlideAnimation(
+      const Offset(-1.5, 1),
+      const Offset(0, 0),
+      0.4,
+    );
+
+    _elephantAnimation = _createSlideAnimation(
+      const Offset(1.5, 1),
+      const Offset(0, 0),
+      0.5,
+    );
+
+    _controller.forward();
+  }
+
+  Animation<Offset> _createSlideAnimation(
+    Offset begin,
+    Offset end,
+    double delay,
+  ) {
+    final start = delay;
+    final finish = (delay + 0.5).clamp(0.0, 1.0);
+
+    return Tween<Offset>(begin: begin, end: end).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(start, finish, curve: Curves.easeOutCubic),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Background
+          Container(decoration: const BoxDecoration(color: Color(0xFF051A37))),
+
+          // Madhubani torn JPG
+          Positioned(
+            top: -20,
+            left: -75,
+            child: SlideTransition(
+              position: _madhubaniAnimation,
+              child: _artwork(
+                assetPath: 'assets/artworks/torn_madhubani-removebg.png',
+                width: 300,
+                height: 300,
+                fit: BoxFit.cover,
+                rotation: -0.08,
+              ),
             ),
-          ],
-        ),
+          ),
+
+          // Handloom+pottery image
+          Positioned(
+            top: -10,
+            right: -80,
+            child: _artwork(
+                assetPath: 'assets/artworks/svg_potteryandhandloom.png',
+                width: 350,
+                height: 270,
+                fit: BoxFit.contain,
+                rotation: 0.00,
+              ),
+            ),
+
+          // Lotus image
+          Positioned(
+            top: size.height * 0.34,
+            left: -18,
+            child: SlideTransition(
+              position: _lotusAnimation,
+              child: _artwork(
+                assetPath: 'assets/artworks/transparent_lotus.png',
+                width: 135,
+                height: 135,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+
+          // Peacock image
+          Positioned(
+            top: size.height * 0.34,
+            right: -30,
+            child: SlideTransition(
+              position: _peacockAnimation,
+              child: _artwork(
+                assetPath: 'assets/artworks/transparent_peacock.png',
+                width: 135,
+                height: 135,
+                fit: BoxFit.contain,
+                rotation: 0.00,
+              ),
+            ),
+          ),
+
+          // Woodcraft image
+          Positioned(
+            bottom: 0,
+            left: -45,
+            child: SlideTransition(
+              position: _woodcraftAnimation,
+              child: _artwork(
+                assetPath: 'assets/artworks/svg_woodcraft.png',
+                width: 280,
+                height: 200,
+                fit: BoxFit.contain,
+                rotation: 0.00,
+              ),
+            ),
+          ),
+
+          // Elephant image
+          Positioned(
+            bottom: 0,
+            right: -45,
+            child: SlideTransition(
+              position: _elephantAnimation,
+              child: _artwork(
+                assetPath: 'assets/artworks/svg_elephant.png',
+                width: 280,
+                height: 220,
+                fit: BoxFit.contain,
+                rotation: 0.00,
+              ),
+            ),
+          ),
+
+          // Dark overlay for better text visibility
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF051A37).withOpacity(0.05),
+                  const Color(0xFF051A37).withOpacity(0.25),
+                  const Color(0xFF051A37).withOpacity(0.55),
+                ],
+              ),
+            ),
+          ),
+
+          // Main content
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 30),
+
+                   // ShilpSetu logo
+                  Image.asset(
+                    'assets/artworks/logo_image-removebg-preview.png',
+                    width: 110,
+                    height: 110,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Color(0xFFD4AF6A),
+                        size: 40,
+                      );
+                    },
+                  ),
+
+
+
+                    // App name
+                    const Text(
+                      'ShilpSetu',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFFF4E8D0),
+                        fontSize: 42,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Tagline
+                    const Text(
+                      'Bridging Skills with Opportunities',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFFD4AF6A),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Description
+                    const Text(
+                      'Empowering artisans by connecting their unique '
+                      'craftsmanship with the right buyers.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFFF4E8D0),
+                        fontSize: 14,
+                        height: 1.6,
+                      ),
+                    ),
+
+                    const SizedBox(height: 34),
+
+                    // Get started button
+                    SizedBox(
+                      width: 220,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Welcome to ShilpSetu!'),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFD4AF6A),
+                          foregroundColor: const Color(0xFF051A37),
+                          elevation: 6,
+                          shadowColor: const Color(0xFFD4AF6A)
+                              .withOpacity(0.35),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Get Started',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Icon(Icons.arrow_forward_rounded),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Bottom actions
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Explore Crafts',
+                            style: TextStyle(
+                              color: Color(0xFFF4E8D0),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 18,
+                          width: 1,
+                          color: const Color(0xFFD4AF6A),
+                        ),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'About Us',
+                            style: TextStyle(
+                              color: Color(0xFFF4E8D0),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _artwork({
+    required String assetPath,
+    required double width,
+    required double height,
+    BoxFit fit = BoxFit.contain,
+    double rotation = 0,
+  }) {
+    return Transform.rotate(
+      angle: rotation,
+      child: Image.asset(
+        assetPath,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: width,
+            height: height,
+            color: Colors.transparent,
+            child: const Icon(
+              Icons.image_not_supported_outlined,
+              color: Colors.white54,
+              size: 30,
+            ),
+          );
+        },
       ),
     );
   }
