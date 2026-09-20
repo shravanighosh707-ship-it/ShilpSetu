@@ -1,4 +1,22 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+class Product {
+  final String name;
+  final String category;
+  final String description;
+  final double price;
+  final String? imagePath;
+
+  Product({
+    required this.name,
+    required this.category,
+    required this.description,
+    required this.price,
+    this.imagePath,
+  });
+}
+final List<Product> artisanProducts = [];
 
 void main() {
   runApp(const ShilpSetuApp());
@@ -522,7 +540,9 @@ class RoleSelectionScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ArtisanDashboard(),
+                      builder: (context) => const AuthScreen(
+                        userRole: 'Artisan',
+                      ),
                     ),
                   );
                 },
@@ -540,14 +560,16 @@ class RoleSelectionScreen extends StatelessWidget {
                     'Explore authentic products and connect '
                     'with talented artisans.',
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Buyer features coming soon!'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AuthScreen(
+                        userRole: 'Buyer',
+                      ),
                     ),
                   );
                 },
               ),
-
               const SizedBox(height: 30),
 
               const Row(
@@ -746,7 +768,31 @@ class ArtisanDashboard extends StatelessWidget {
               Icons.add_a_photo_rounded,
               'Add Your Craft',
               'Upload photos and details of your handmade products.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddProductScreen(),
+                  ),
+                );
+              },
             ),
+
+            _dashboardCard(
+              context,
+              Icons.inventory_2_rounded,
+              'My Products',
+              'View and manage your listed products.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyProductsScreen(),
+                  ),
+                );
+              },
+            ),
+
 
             _dashboardCard(
               context,
@@ -775,46 +821,862 @@ class ArtisanDashboard extends StatelessWidget {
   }
 
   Widget _dashboardCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String description,
-  ) {
-    return Card(
-      color: const Color(0xFF0B2A50),
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+  BuildContext context,
+  IconData icon,
+  String title,
+  String description, {
+  VoidCallback? onTap,
+}) {
+  return Card(
+    color: const Color(0xFF0B2A50),
+    margin: const EdgeInsets.only(bottom: 16),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18),
+    ),
+    child: ListTile(
+      contentPadding: const EdgeInsets.all(16),
+      leading: Icon(
+        icon,
+        color: const Color(0xFFD4AF6A),
+        size: 32,
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Icon(
-          icon,
-          color: const Color(0xFFD4AF6A),
-          size: 32,
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Color(0xFFF4E8D0),
+          fontWeight: FontWeight.bold,
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Color(0xFFF4E8D0),
-            fontWeight: FontWeight.bold,
+      ),
+      subtitle: Text(
+        description,
+        style: const TextStyle(color: Colors.white70),
+      ),
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        color: Color(0xFFD4AF6A),
+        size: 16,
+      ),
+      onTap: onTap ??
+          () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$title selected!')),
+            );
+          },
+    ),
+  );
+}
+}
+
+class AddProductScreen extends StatefulWidget {
+  const AddProductScreen({super.key});
+
+  @override
+  State<AddProductScreen> createState() => _AddProductScreenState();
+}
+
+class _AddProductScreenState extends State<AddProductScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final nameController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final priceController = TextEditingController();
+  final categoryController = TextEditingController();
+  File? selectedImage;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  Future<void> _pickImage() async {
+  final XFile? pickedFile = await _imagePicker.pickImage(
+    source: ImageSource.gallery,
+  );
+
+  if (pickedFile != null) {
+    setState(() {
+      selectedImage = File(pickedFile.path);
+    });
+  }
+}
+  void dispose() {
+    nameController.dispose();
+    descriptionController.dispose();
+    priceController.dispose();
+    categoryController.dispose();
+    super.dispose();
+  }
+
+  void _saveProduct() {
+  if (_formKey.currentState!.validate()) {
+    final product = Product(
+      name: nameController.text.trim(),
+      category: categoryController.text.trim(),
+      description: descriptionController.text.trim(),
+      price: double.parse(priceController.text.trim()),
+      imagePath: selectedImage?.path,
+    );
+
+    artisanProducts.add(product);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Product added successfully!'),
+      ),
+    );
+
+    Navigator.pop(context);
+  }
+}
+
+  @override
+  Widget build(BuildContext context) {
+    const navy = Color(0xFF051A37);
+    const cardColor = Color(0xFF0B2A50);
+    const gold = Color(0xFFD4AF6A);
+    const cream = Color(0xFFF4E8D0);
+
+    return Scaffold(
+      backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        foregroundColor: cream,
+        elevation: 0,
+        title: const Text(
+          'Add Your Craft',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tell us about your craft',
+                  style: TextStyle(
+                    color: cream,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Add your product details to showcase your craftsmanship.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 30),
+
+                _buildField(
+                  controller: nameController,
+                  label: 'Product Name',
+                  hint: 'e.g. Handwoven Silk Saree',
+                  icon: Icons.inventory_2_outlined,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a product name';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                _buildField(
+                  controller: categoryController,
+                  label: 'Category',
+                  hint: 'e.g. Textiles, Pottery, Jewellery',
+                  icon: Icons.category_outlined,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a category';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                _buildField(
+                  controller: descriptionController,
+                  label: 'Product Description',
+                  hint: 'Describe your handmade product',
+                  icon: Icons.description_outlined,
+                  maxLines: 4,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                _buildField(
+                  controller: priceController,
+                  label: 'Price (₹)',
+                  hint: 'Enter product price',
+                  icon: Icons.currency_rupee_rounded,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a price';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Enter a valid price';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+
+const Text(
+  'Product Image',
+  style: TextStyle(
+    color: cream,
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  ),
+),
+
+const SizedBox(height: 12),
+
+GestureDetector(
+  onTap: _pickImage,
+  child: Container(
+    width: double.infinity,
+    height: 210,
+    decoration: BoxDecoration(
+      color: cardColor,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: gold.withOpacity(0.6),
+        width: 1.5,
+      ),
+    ),
+    child: selectedImage == null
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                color: gold,
+                size: 48,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Upload Product Image',
+                style: TextStyle(
+                  color: cream,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Tap to choose an image from your gallery',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          )
+        : ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.file(
+              selectedImage!,
+              width: double.infinity,
+              height: 210,
+              fit: BoxFit.cover,
+            ),
+          ),
+  ),
+),
+
+if (selectedImage != null)
+  Align(
+    alignment: Alignment.centerRight,
+    child: TextButton.icon(
+      onPressed: _pickImage,
+      icon: const Icon(Icons.edit, color: gold),
+      label: const Text(
+        'Change Image',
+        style: TextStyle(color: gold),
+      ),
+    ),
+  ),
+
+                const SizedBox(height: 30),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: _saveProduct,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: gold,
+                      foregroundColor: navy,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      'Save Product',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        subtitle: Text(
-          description,
-          style: const TextStyle(color: Colors.white70),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios_rounded,
-          color: Color(0xFFD4AF6A),
-          size: 16,
-        ),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title selected!')),
-          );
-        },
       ),
+    );
+  }
+
+  Widget _buildField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      style: const TextStyle(color: Color(0xFFF4E8D0)),
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        labelStyle: const TextStyle(color: Colors.white70),
+        hintStyle: const TextStyle(color: Colors.white38),
+        prefixIcon: Icon(icon, color: const Color(0xFFD4AF6A)),
+        filled: true,
+        fillColor: const Color(0xFF0B2A50),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: Color(0xFFD4AF6A),
+            width: 1.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+class AuthScreen extends StatefulWidget {
+  final String userRole;
+
+  const AuthScreen({
+    super.key,
+    required this.userRole,
+  });
+
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+  bool isLogin = true;
+
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const navy = Color(0xFF051A37);
+    const cardColor = Color(0xFF0B2A50);
+    const gold = Color(0xFFD4AF6A);
+    const cream = Color(0xFFF4E8D0);
+
+    return Scaffold(
+      backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        foregroundColor: cream,
+        elevation: 0,
+        title: Text(
+          '${widget.userRole} ${isLogin ? 'Login' : 'Registration'}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+
+                // Header icon
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: gold.withOpacity(0.12),
+                    border: Border.all(
+                      color: gold.withOpacity(0.45),
+                    ),
+                  ),
+                  child: Icon(
+                    widget.userRole == 'Artisan'
+                        ? Icons.handyman_rounded
+                        : Icons.shopping_bag_rounded,
+                    color: gold,
+                    size: 48,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                Text(
+                  isLogin
+                      ? 'Welcome Back!'
+                      : 'Create Your Account',
+                  style: const TextStyle(
+                    color: cream,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Text(
+                  isLogin
+                      ? 'Login to continue as a ${widget.userRole.toLowerCase()}.'
+                      : 'Register to begin your ShilpSetu journey.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Name field — registration only
+                if (!isLogin) ...[
+                  _buildTextField(
+                    controller: nameController,
+                    label: 'Full Name',
+                    icon: Icons.person_outline_rounded,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 18),
+                ],
+
+                // Email field
+                _buildTextField(
+                  controller: emailController,
+                  label: 'Email Address',
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Enter a valid email address';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                // Password field
+                _buildTextField(
+                  controller: passwordController,
+                  label: 'Password',
+                  icon: Icons.lock_outline_rounded,
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.length < 6) {
+                      return 'Password must contain 6+ characters';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 28),
+
+                // Main button
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        if (widget.userRole == 'Artisan') {
+                         Navigator.pushReplacement(
+                           context,
+                           MaterialPageRoute(
+                             builder: (context) => const ArtisanDashboard(),
+                            ),
+                          );
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const BuyerDashboard(),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: gold,
+                      foregroundColor: navy,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: Text(
+                      isLogin ? 'Login' : 'Register',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+
+                // Toggle login/register
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      isLogin
+                          ? "Don't have an account?"
+                          : 'Already have an account?',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          isLogin = !isLogin;
+                        });
+                      },
+                      child: Text(
+                        isLogin ? 'Register' : 'Login',
+                        style: const TextStyle(
+                          color: gold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                const Text(
+                  'Your journey from craft to opportunity begins here.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white38,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      style: const TextStyle(color: Color(0xFFF4E8D0)),
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: const Icon(
+          Icons.circle,
+          color: Colors.transparent,
+          size: 0,
+        ),
+        suffixIcon: Icon(icon, color: Color(0xFFD4AF6A)),
+        filled: true,
+        fillColor: const Color(0xFF0B2A50),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: Color(0xFFD4AF6A),
+            width: 1.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+class BuyerDashboard extends StatelessWidget {
+  const BuyerDashboard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const navy = Color(0xFF051A37);
+    const cardColor = Color(0xFF0B2A50);
+    const gold = Color(0xFFD4AF6A);
+    const cream = Color(0xFFF4E8D0);
+
+    return Scaffold(
+      backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        foregroundColor: cream,
+        elevation: 0,
+        title: const Text(
+          'Buyer Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Welcome, Buyer!',
+              style: TextStyle(
+                color: cream,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Discover authentic handmade products.',
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 30),
+            Card(
+              color: cardColor,
+              child: ListTile(
+                leading: const Icon(
+                  Icons.shopping_bag_rounded,
+                  color: gold,
+                ),
+                title: const Text(
+                  'Explore Products',
+                  style: TextStyle(color: cream),
+                ),
+                subtitle: const Text(
+                  'Browse products from artisans',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: gold,
+                ),
+                onTap: () {
+                  // Add product catalogue navigation here.
+                },
+              ),
+            ),
+            Card(
+              color: cardColor,
+              child: ListTile(
+                leading: const Icon(
+                  Icons.favorite_border_rounded,
+                  color: gold,
+                ),
+                title: const Text(
+                  'Saved Products',
+                  style: TextStyle(color: cream),
+                ),
+                subtitle: const Text(
+                  'View your saved items',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: gold,
+                ),
+                onTap: () {
+                  // Add saved products navigation here.
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class MyProductsScreen extends StatefulWidget {
+  const MyProductsScreen({super.key});
+
+  @override
+  State<MyProductsScreen> createState() => _MyProductsScreenState();
+}
+
+class _MyProductsScreenState extends State<MyProductsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    const navy = Color(0xFF051A37);
+    const cardColor = Color(0xFF0B2A50);
+    const gold = Color(0xFFD4AF6A);
+    const cream = Color(0xFFF4E8D0);
+
+    return Scaffold(
+      backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        foregroundColor: cream,
+        elevation: 0,
+        title: const Text(
+          'My Products',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: artisanProducts.isEmpty
+          ? const Center(
+              child: Text(
+                'No products added yet.',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                ),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: artisanProducts.length,
+              itemBuilder: (context, index) {
+                final product = artisanProducts[index];
+
+                return Card(
+                  color: cardColor,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.inventory_2_rounded,
+                              color: gold,
+                              size: 32,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                product.name,
+                                style: const TextStyle(
+                                  color: cream,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Category: ${product.category}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          product.description,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          '₹${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: gold,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                artisanProducts.removeAt(index);
+                              });
+                            },
+                            icon: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.redAccent,
+                            ),
+                            label: const Text(
+                              'Remove',
+                              style: TextStyle(
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }
