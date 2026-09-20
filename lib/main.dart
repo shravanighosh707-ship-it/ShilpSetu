@@ -814,6 +814,14 @@ class ArtisanDashboard extends StatelessWidget {
               Icons.currency_rupee_rounded,
               'Smart Pricing',
               'Get assistance with pricing your products.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SmartPricingScreen(),
+                  ),
+                );
+              },
             ),
 
             _dashboardCard(
@@ -1956,6 +1964,363 @@ class _AICatalogingScreenState extends State<AICatalogingScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+class SmartPricingScreen extends StatefulWidget {
+  const SmartPricingScreen({super.key});
+
+  @override
+  State<SmartPricingScreen> createState() => _SmartPricingScreenState();
+}
+
+class _SmartPricingScreenState extends State<SmartPricingScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final productNameController = TextEditingController();
+  final materialCostController = TextEditingController();
+  final laborCostController = TextEditingController();
+  final otherCostController = TextEditingController();
+  final profitController = TextEditingController(text: '20');
+
+  double? totalCost;
+  double? profitAmount;
+  double? suggestedPrice;
+
+  @override
+  void dispose() {
+    productNameController.dispose();
+    materialCostController.dispose();
+    laborCostController.dispose();
+    otherCostController.dispose();
+    profitController.dispose();
+    super.dispose();
+  }
+
+  void _calculatePrice() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final materialCost = double.parse(materialCostController.text);
+    final laborCost = double.parse(laborCostController.text);
+    final otherCost = double.parse(otherCostController.text);
+    final profitPercentage = double.parse(profitController.text);
+
+    final cost = materialCost + laborCost + otherCost;
+    final profit = cost * profitPercentage / 100;
+    final price = cost + profit;
+
+    setState(() {
+      totalCost = cost;
+      profitAmount = profit;
+      suggestedPrice = price;
+    });
+  }
+
+  InputDecoration _inputDecoration(String label, String hint) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: const Icon(
+        Icons.currency_rupee_rounded,
+        color: Color(0xFFD4AF6A),
+      ),
+      labelStyle: const TextStyle(color: Color(0xFFD4AF6A)),
+      hintStyle: const TextStyle(color: Colors.white54),
+      filled: true,
+      fillColor: const Color(0xFF0B2A50),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
+  String _formatAmount(double amount) {
+    return '₹${amount.toStringAsFixed(2)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const navy = Color(0xFF051A37);
+    const cardColor = Color(0xFF0B2A50);
+    const gold = Color(0xFFD4AF6A);
+    const cream = Color(0xFFF4E8D0);
+
+    return Scaffold(
+      backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        foregroundColor: cream,
+        elevation: 0,
+        title: const Text(
+          'Smart Pricing',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Set the right price for your craft',
+                  style: TextStyle(
+                    color: cream,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                const Text(
+                  'Enter your production costs and desired profit margin.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+
+                const SizedBox(height: 28),
+
+                TextFormField(
+                  controller: productNameController,
+                  style: const TextStyle(color: cream),
+                  decoration: _inputDecoration(
+                    'Product Name',
+                    'e.g. Handwoven Silk Saree',
+                  ).copyWith(
+                    prefixIcon: const Icon(
+                      Icons.inventory_2_outlined,
+                      color: gold,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a product name';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                TextFormField(
+                  controller: materialCostController,
+                  style: const TextStyle(color: cream),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: _inputDecoration(
+                    'Material Cost',
+                    'Enter material cost',
+                  ),
+                  validator: _validateAmount,
+                ),
+
+                const SizedBox(height: 18),
+
+                TextFormField(
+                  controller: laborCostController,
+                  style: const TextStyle(color: cream),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: _inputDecoration(
+                    'Labor Cost',
+                    'Enter labor cost',
+                  ),
+                  validator: _validateAmount,
+                ),
+
+                const SizedBox(height: 18),
+
+                TextFormField(
+                  controller: otherCostController,
+                  style: const TextStyle(color: cream),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: _inputDecoration(
+                    'Other Expenses',
+                    'e.g. Packaging and transport',
+                  ),
+                  validator: _validateAmount,
+                ),
+
+                const SizedBox(height: 18),
+
+                TextFormField(
+                  controller: profitController,
+                  style: const TextStyle(color: cream),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Desired Profit (%)',
+                    hintText: 'e.g. 20',
+                    prefixIcon: Icon(
+                      Icons.percent,
+                      color: gold,
+                    ),
+                    labelStyle: TextStyle(color: gold),
+                    hintStyle: TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: cardColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(14)),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (value) {
+                    final profit = double.tryParse(value ?? '');
+
+                    if (profit == null || profit < 0 || profit > 1000) {
+                      return 'Enter a valid profit percentage';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 26),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton.icon(
+                    onPressed: _calculatePrice,
+                    icon: const Icon(Icons.calculate_outlined),
+                    label: const Text(
+                      'Calculate Suggested Price',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: gold,
+                      foregroundColor: navy,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                  ),
+                ),
+
+                if (suggestedPrice != null) ...[
+                  const SizedBox(height: 30),
+
+                  const Text(
+                    'Pricing Summary',
+                    style: TextStyle(
+                      color: cream,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Product: ${productNameController.text.trim()}',
+                          style: const TextStyle(
+                            color: cream,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        _priceRow(
+                          'Total Production Cost',
+                          _formatAmount(totalCost!),
+                          cream,
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        _priceRow(
+                          'Estimated Profit',
+                          _formatAmount(profitAmount!),
+                          Colors.greenAccent,
+                        ),
+
+                        const Divider(
+                          color: Colors.white24,
+                          height: 30,
+                        ),
+
+                        _priceRow(
+                          'Suggested Selling Price',
+                          _formatAmount(suggestedPrice!),
+                          gold,
+                          isHighlighted: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String? _validateAmount(String? value) {
+    final amount = double.tryParse(value ?? '');
+
+    if (amount == null || amount < 0) {
+      return 'Enter a valid amount';
+    }
+
+    return null;
+  }
+
+  Widget _priceRow(
+    String label,
+    String amount,
+    Color textColor, {
+    bool isHighlighted = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontSize: isHighlighted ? 16 : 14,
+              fontWeight:
+                  isHighlighted ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+        Text(
+          amount,
+          style: TextStyle(
+            color: textColor,
+            fontSize: isHighlighted ? 22 : 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
