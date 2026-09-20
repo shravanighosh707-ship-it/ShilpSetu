@@ -22,20 +22,19 @@ class WelcomeScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 28,
-                    vertical: 20,
+                    vertical: 24,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 25),
-
-                      // Logo
+                      // Brand mark
                       Container(
-                        width: 82,
-                        height: 82,
+                        width: 86,
+                        height: 86,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: gold, width: 2),
+                          color: gold.withValues(alpha: 0.06),
                         ),
                         child: const Icon(
                           Icons.spa_outlined,
@@ -44,7 +43,7 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 24),
 
                       // App name
                       const Text(
@@ -74,23 +73,26 @@ class WelcomeScreen extends StatelessWidget {
                       const SizedBox(height: 22),
 
                       // Description
-                      const Text(
-                        'Empowering artisans by connecting their unique '
-                        'craftsmanship with the right buyers.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                          height: 1.6,
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          'Empowering artisans by connecting their unique '
+                          'craftsmanship with the right buyers.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            height: 1.6,
+                          ),
                         ),
                       ),
 
-                      const SizedBox(height: 35),
+                      const SizedBox(height: 38),
 
                       // Get Started
                       SizedBox(
-                        width: 190,
-                        height: 55,
+                        width: 200,
+                        height: 56,
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.push(
@@ -120,43 +122,24 @@ class WelcomeScreen extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(width: 12),
-                              Icon(Icons.arrow_forward, size: 20),
+                              Icon(Icons.arrow_forward_rounded, size: 20),
                             ],
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 35),
+                      const SizedBox(height: 28),
 
-                      // Secondary links
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              // Explore Crafts will be implemented later.
-                            },
-                            child: const Text(
-                              'Explore Crafts',
-                              style: TextStyle(color: cream, fontSize: 12),
-                            ),
-                          ),
-
-                          Container(height: 18, width: 1, color: gold),
-
-                          TextButton(
-                            onPressed: () {
-                              // About Us will be implemented later.
-                            },
-                            child: const Text(
-                              'About Us',
-                              style: TextStyle(color: cream, fontSize: 12),
-                            ),
-                          ),
-                        ],
+                      // Brand footer
+                      const Text(
+                        'Empowering Indian craftsmanship',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 0.3,
+                        ),
                       ),
-
-                      const SizedBox(height: 20),
                     ],
                   ),
                 ),

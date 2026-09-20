@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../auth/login_screen.dart';
 import '../../services/artisan_profile_service.dart';
 import 'add_product_screen.dart';
 import 'artisan_profile_screen.dart';
@@ -74,6 +75,69 @@ class _ArtisanDashboardState extends State<ArtisanDashboard> {
       MaterialPageRoute(
         builder: (context) => ArtisanProfileScreen(uid: user.uid),
       ),
+    );
+  }
+
+  Future<void> logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: const Text(
+            'Logout?',
+            style: TextStyle(color: cream, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Are you sure you want to logout from ShilpSetu?',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white60),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: gold,
+                foregroundColor: navy,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Logout',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true) {
+      return;
+    }
+
+    await FirebaseAuth.instance.signOut();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
     );
   }
 
@@ -222,12 +286,19 @@ class _ArtisanDashboardState extends State<ArtisanDashboard> {
         actions: [
           IconButton(
             onPressed: openProfile,
+            tooltip: 'Profile',
             icon: const Icon(
               Icons.account_circle_outlined,
               color: cream,
               size: 28,
             ),
           ),
+          IconButton(
+            onPressed: logout,
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout_rounded, color: gold, size: 24),
+          ),
+          const SizedBox(width: 6),
         ],
       ),
 
