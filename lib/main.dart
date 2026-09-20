@@ -799,6 +799,14 @@ class ArtisanDashboard extends StatelessWidget {
               Icons.auto_awesome_rounded,
               'AI Cataloging',
               'Generate product descriptions using AI.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AICatalogingScreen(),
+                  ),
+                );
+              },
             ),
 
             _dashboardCard(
@@ -1677,6 +1685,277 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
                 );
               },
             ),
+    );
+  }
+}
+class AICatalogingScreen extends StatefulWidget {
+  const AICatalogingScreen({super.key});
+
+  @override
+  State<AICatalogingScreen> createState() => _AICatalogingScreenState();
+}
+
+class _AICatalogingScreenState extends State<AICatalogingScreen> {
+  final productNameController = TextEditingController();
+  final materialController = TextEditingController();
+  final colorController = TextEditingController();
+  final craftDetailsController = TextEditingController();
+
+  String? generatedTitle;
+  String? generatedDescription;
+  String? generatedTags;
+
+  @override
+  void dispose() {
+    productNameController.dispose();
+    materialController.dispose();
+    colorController.dispose();
+    craftDetailsController.dispose();
+    super.dispose();
+  }
+
+  void _generateCatalog() {
+    if (productNameController.text.trim().isEmpty ||
+        materialController.text.trim().isEmpty ||
+        craftDetailsController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in the required fields.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      generatedTitle =
+          '${productNameController.text.trim()} - Handmade Craft';
+
+      generatedDescription =
+          'This beautifully handcrafted ${productNameController.text.trim()} '
+          'is made using ${materialController.text.trim()}. '
+          '${craftDetailsController.text.trim()} '
+          'The product showcases traditional craftsmanship and attention to detail.';
+
+      generatedTags =
+          '#Handmade #ArtisanCraft #${materialController.text.trim().replaceAll(' ', '')}';
+    });
+  }
+
+  InputDecoration _inputDecoration(String label, String hint) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: const TextStyle(color: Color(0xFFD4AF6A)),
+      hintStyle: const TextStyle(color: Colors.white54),
+      filled: true,
+      fillColor: const Color(0xFF0B2A50),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const navy = Color(0xFF051A37);
+    const cardColor = Color(0xFF0B2A50);
+    const gold = Color(0xFFD4AF6A);
+    const cream = Color(0xFFF4E8D0);
+
+    return Scaffold(
+      backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        foregroundColor: cream,
+        elevation: 0,
+        title: const Text(
+          'AI Cataloging',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Create your product catalog',
+                style: TextStyle(
+                  color: cream,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                'Provide a few details and generate a market-ready listing.',
+                style: TextStyle(color: Colors.white70),
+              ),
+
+              const SizedBox(height: 28),
+
+              TextField(
+                controller: productNameController,
+                style: const TextStyle(color: cream),
+                decoration: _inputDecoration(
+                  'Product Name',
+                  'e.g. Handwoven Silk Saree',
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              TextField(
+                controller: materialController,
+                style: const TextStyle(color: cream),
+                decoration: _inputDecoration(
+                  'Material',
+                  'e.g. Silk, Cotton, Clay',
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              TextField(
+                controller: colorController,
+                style: const TextStyle(color: cream),
+                decoration: _inputDecoration(
+                  'Color',
+                  'e.g. Red, Blue, Natural',
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              TextField(
+                controller: craftDetailsController,
+                style: const TextStyle(color: cream),
+                maxLines: 4,
+                decoration: _inputDecoration(
+                  'Craft Details',
+                  'Describe the making process and special features',
+                ),
+              ),
+
+              const SizedBox(height: 26),
+
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton.icon(
+                  onPressed: _generateCatalog,
+                  icon: const Icon(Icons.auto_awesome),
+                  label: const Text(
+                    'Generate Catalog',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: gold,
+                    foregroundColor: navy,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+              ),
+
+              if (generatedTitle != null) ...[
+                const SizedBox(height: 30),
+
+                const Text(
+                  'Generated Catalog',
+                  style: TextStyle(
+                    color: cream,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Title',
+                        style: TextStyle(
+                          color: gold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Text(
+                        generatedTitle!,
+                        style: const TextStyle(
+                          color: cream,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        'Description',
+                        style: TextStyle(
+                          color: gold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Text(
+                        generatedDescription!,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          height: 1.5,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        'Tags',
+                        style: TextStyle(
+                          color: gold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Text(
+                        generatedTags!,
+                        style: const TextStyle(
+                          color: cream,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
