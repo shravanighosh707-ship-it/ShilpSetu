@@ -4,7 +4,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+import 'features/auth/login_screen.dart';
+import 'features/products/add_product_screen.dart';
+import 'firebase_options.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  if (const bool.fromEnvironment('USE_FIREBASE_EMULATORS')) {
+    FirebaseAuth.instance.useAuthEmulator('10.0.2.2', 9099);
+    FirebaseFunctions.instance.useFunctionsEmulator('10.0.2.2', 5001);
+    FirebaseFirestore.instance.useFirestoreEmulator('10.0.2.2', 8080);
+  }
+
   runApp(const ShilpSetuApp());
 }
 
@@ -146,13 +160,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             top: -10,
             right: -80,
             child: _artwork(
-                assetPath: 'assets/artworks/svg_potteryandhandloom.png',
-                width: 350,
-                height: 270,
-                fit: BoxFit.contain,
-                rotation: 0.00,
-              ),
+              assetPath: 'assets/artworks/svg_potteryandhandloom.png',
+              width: 350,
+              height: 270,
+              fit: BoxFit.contain,
+              rotation: 0.00,
             ),
+          ),
 
           // Lotus image
           Positioned(
@@ -242,22 +256,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   children: [
                     const SizedBox(height: 30),
 
-                   // ShilpSetu logo
-                  Image.asset(
-                    'assets/artworks/logo_image-removebg-preview.png',
-                    width: 110,
-                    height: 110,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Color(0xFFD4AF6A),
-                        size: 40,
-                      );
-                    },
-                  ),
-
-
+                    // ShilpSetu logo
+                    Image.asset(
+                      'assets/artworks/logo_image-removebg-preview.png',
+                      width: 110,
+                      height: 110,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Color(0xFFD4AF6A),
+                          size: 40,
+                        );
+                      },
+                    ),
 
                     // App name
                     const Text(
@@ -415,6 +427,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 }
+
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
 
@@ -446,16 +459,12 @@ class RoleSelectionScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 30),
           child: Column(
             children: [
-              // Header icon
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: gold.withOpacity(0.12),
-                  border: Border.all(
-                    color: gold.withOpacity(0.45),
-                    width: 1.2,
-                  ),
+                  border: Border.all(color: gold.withOpacity(0.45), width: 1.2),
                 ),
                 child: const Icon(
                   Icons.diversity_3_rounded,
@@ -502,18 +511,17 @@ class RoleSelectionScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 24),
-              // Image above the role cards
+
               Image.asset(
                 'assets/artworks/traditional.png',
-                 width: double.infinity,
-                 height: 150,
-                 fit: BoxFit.contain,
+                width: double.infinity,
+                height: 150,
+                fit: BoxFit.contain,
               ),
 
               const SizedBox(height: 24),
 
-
-              // Artisan card
+              // Artisan
               _roleCard(
                 context: context,
                 icon: Icons.handyman_rounded,
@@ -526,7 +534,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ArtisanDashboard(),
+                      builder: (context) => const LoginScreen(),
                     ),
                   );
                 },
@@ -534,7 +542,7 @@ class RoleSelectionScreen extends StatelessWidget {
 
               const SizedBox(height: 22),
 
-              // Buyer card
+              // Buyer
               _roleCard(
                 context: context,
                 icon: Icons.shopping_bag_rounded,
@@ -544,9 +552,10 @@ class RoleSelectionScreen extends StatelessWidget {
                     'Explore authentic products and connect '
                     'with talented artisans.',
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Buyer features coming soon!'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
                     ),
                   );
                 },
@@ -565,10 +574,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   SizedBox(width: 6),
                   Text(
                     'You can change your role later',
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                 ],
               ),
@@ -600,10 +606,7 @@ class RoleSelectionScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: gold.withOpacity(0.45),
-              width: 1.2,
-            ),
+            border: Border.all(color: gold.withOpacity(0.45), width: 1.2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.18),
@@ -620,11 +623,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: gold.withOpacity(0.13),
                 ),
-                child: Icon(
-                  icon,
-                  color: gold,
-                  size: 42,
-                ),
+                child: Icon(icon, color: gold, size: 42),
               ),
 
               const SizedBox(height: 18),
@@ -672,9 +671,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: gold.withOpacity(0.6),
-                  ),
+                  border: Border.all(color: gold.withOpacity(0.6)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -688,11 +685,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      color: gold,
-                      size: 17,
-                    ),
+                    Icon(Icons.arrow_forward_rounded, color: gold, size: 17),
                   ],
                 ),
               ),
@@ -703,6 +696,7 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 }
+
 class ArtisanDashboard extends StatelessWidget {
   const ArtisanDashboard({super.key});
 
@@ -737,10 +731,7 @@ class ArtisanDashboard extends StatelessWidget {
 
             const Text(
               'Showcase your craftsmanship and reach more buyers.',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
 
             const SizedBox(height: 30),
@@ -750,6 +741,14 @@ class ArtisanDashboard extends StatelessWidget {
               Icons.add_a_photo_rounded,
               'Add Your Craft',
               'Upload photos and details of your handmade products.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddProductScreen(),
+                  ),
+                );
+              },
             ),
 
             _dashboardCard(
@@ -782,21 +781,16 @@ class ArtisanDashboard extends StatelessWidget {
     BuildContext context,
     IconData icon,
     String title,
-    String description,
-  ) {
+    String description, {
+    VoidCallback? onTap,
+  }) {
     return Card(
       color: const Color(0xFF0B2A50),
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
-        leading: Icon(
-          icon,
-          color: const Color(0xFFD4AF6A),
-          size: 32,
-        ),
+        leading: Icon(icon, color: const Color(0xFFD4AF6A), size: 32),
         title: Text(
           title,
           style: const TextStyle(
@@ -813,11 +807,12 @@ class ArtisanDashboard extends StatelessWidget {
           color: Color(0xFFD4AF6A),
           size: 16,
         ),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title selected!')),
-          );
-        },
+        onTap:
+            onTap ??
+            () {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text('$title selected!')));
+            },
       ),
     );
   }
