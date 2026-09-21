@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 class Product {
   final String name;
   final String category;
@@ -1708,11 +1709,72 @@ class _AICatalogingScreenState extends State<AICatalogingScreen> {
   final materialController = TextEditingController();
   final colorController = TextEditingController();
   final craftDetailsController = TextEditingController();
+  final stt.SpeechToText _speech = stt.SpeechToText();
+
+  bool _isListening = false;
+  bool _speechAvailable = false;
 
   String? generatedTitle;
   String? generatedDescription;
   String? generatedTags;
 
+  Future<void> _initializeSpeech() async {
+  _speechAvailable = await _speech.initialize(
+    onStatus: (status) {
+      if (status == 'done' || status == 'notListening') {
+        setState(() {
+          _isListening = false;
+        });
+      }
+    },
+    onError: (error) {
+      setState(() {
+        _isListening = false;
+      });
+    },
+  );
+}
+  @override
+  void initState() {
+    super.initState();
+    _initializeSpeech();
+  }
+    Future<void> _toggleListening() async {
+    if (!_speechAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Speech recognition is not available.'),
+        ),
+      );
+      return;
+    }
+
+    if (_isListening) {
+      await _speech.stop();
+
+      setState(() {
+        _isListening = false;
+      });
+    } else {
+      setState(() {
+        _isListening = true;
+      });
+
+      await _speech.listen(
+        onResult: (result) {
+          setState(() {
+            craftDetailsController.text = result.recognizedWords;
+            craftDetailsController.selection =
+                TextSelection.fromPosition(
+              TextPosition(
+                offset: craftDetailsController.text.length,
+              ),
+            );
+          });
+        },
+      );
+    }
+  }
   @override
   void dispose() {
     productNameController.dispose();
@@ -1846,7 +1908,15 @@ class _AICatalogingScreenState extends State<AICatalogingScreen> {
                 decoration: _inputDecoration(
                   'Craft Details',
                   'Describe the making process and special features',
-                ),
+                 ).copyWith(
+                   suffixIcon: IconButton(
+                      icon: Icon(
+                        _isListening ? Icons.mic : Icons.mic_none,
+                        color: _isListening ? Colors.red : Colors.white,
+                      ),
+                      onPressed: _toggleListening,
+                    ),
+                  ),
               ),
 
               const SizedBox(height: 26),
