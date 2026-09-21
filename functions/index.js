@@ -102,6 +102,105 @@ The result is only a suggestion and will be reviewed by the artisan.
     throw new Error("Failed to generate product catalog.");
   }
 });
+exports.generateSmartPrice = onCall(async (request) => {
+  if (!request.auth) {
+    throw new Error("Authentication required.");
+  }
+
+  const {
+    productName,
+    category,
+    craftType,
+    description,
+    location,
+    material,
+    experience,
+  } = request.data || {};
+
+  if (!productName || !category || !craftType) {
+    throw new Error("Product name, category, and craft type are required.");
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash-lite",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `
+You are helping an artisan estimate a reasonable selling price
+for a handmade craft product.
+
+Analyze the provided product information and suggest a practical price range.
+
+Product information:
+- Name: ${productName}
+- Category: ${category}
+- Craft type: ${craftType}
+- Description: ${description || "Not provided"}
+- Location: ${location || "Not provided"}
+- Material: ${material || "Not provided"}
+- Artisan experience: ${experience || "Not provided"}
+
+Return ONLY valid JSON:
+{
+  "suggestedPrice": number,
+  "minimumPrice": number,
+  "maximumPrice": number,
+  "currency": "INR",
+  "reason": "string"
+}
+
+Important:
+- Prices must be realistic for handmade/artisan products in India.
+- Do not claim that the price is guaranteed.
+- Consider craftsmanship, materials, complexity, and available information.
+- If information is insufficient, make a cautious estimate.
+`,
+            },
+          ],
+        },
+      ],
+    });
+
+    const output = response.text;
+
+    if (!output) {
+      throw new Error("AI returned an empty response.");
+    }
+
+    let pricing;
+
+    try {
+      const cleanedOutput = output
+          .replace(/^```json\s*/i, "")
+          .replace(/\s*```$/i, "")
+          .trim();
+
+      pricing = JSON.parse(cleanedOutput);
+    } catch (error) {
+      logger.error("AI returned invalid pricing JSON", {
+        output,
+        error: error.message,
+      });
+
+      throw new Error("AI returned an invalid pricing response.");
+    }
+
+    return {
+      success: true,
+      pricing,
+    };
+  } catch (error) {
+    logger.error("AI smart pricing failed", {
+      message: error.message,
+    });
+
+    throw new Error("Failed to generate smart price.");
+  }
+});
 
 exports.uploadProductImage = onCall(async (request) => {
   if (!request.auth) {

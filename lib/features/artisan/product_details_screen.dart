@@ -1,35 +1,47 @@
 import 'package:flutter/material.dart';
 
-class ProductDetailsScreen extends StatelessWidget {
+import '../../services/order_service.dart';
+
+class ProductDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> product;
 
   const ProductDetailsScreen({super.key, required this.product});
 
+  @override
+  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+}
+
+class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   static const Color navy = Color(0xFF051A37);
   static const Color gold = Color(0xFFD4AF37);
   static const Color cream = Color(0xFFF5E6C8);
   static const Color cardColor = Color(0xFF0B2547);
 
+  final OrderService _orderService = OrderService();
+  bool _isPlacingOrder = false;
+
   @override
   Widget build(BuildContext context) {
-    final String name = product['name']?.toString() ?? 'Unnamed Product';
+    final String name = widget.product['name']?.toString() ?? 'Unnamed Product';
 
     final String description =
-        product['description']?.toString() ?? 'No description available.';
+        widget.product['description']?.toString() ??
+        'No description available.';
 
-    final String category = product['category']?.toString() ?? 'No category';
+    final String category =
+        widget.product['category']?.toString() ?? 'No category';
 
     final String craftType =
-        product['craftType']?.toString() ?? 'No craft type';
+        widget.product['craftType']?.toString() ?? 'No craft type';
 
-    final double price = (product['price'] as num?)?.toDouble() ?? 0;
+    final double price = (widget.product['price'] as num?)?.toDouble() ?? 0;
 
     final int availableQuantity =
-        (product['availableQuantity'] as num?)?.toInt() ?? 0;
+        (widget.product['availableQuantity'] as num?)?.toInt() ?? 0;
 
-    final String imageUrl = product['imageUrl']?.toString() ?? '';
+    final String imageUrl = widget.product['imageUrl']?.toString() ?? '';
 
-    final String artisanId = product['artisanId']?.toString() ?? '';
+    final String artisanId = widget.product['artisanId']?.toString() ?? '';
 
     return Scaffold(
       backgroundColor: navy,
@@ -288,6 +300,42 @@ class ProductDetailsScreen extends StatelessWidget {
                     fontSize: 11,
                   ),
                 ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: availableQuantity > 0 && !_isPlacingOrder
+                      ? () => _showBuyDialog(
+                          context,
+                          productId: widget.product['id']?.toString() ?? '',
+                          productName: name,
+                          artisanId: artisanId,
+                          price: price,
+                          availableQuantity: availableQuantity,
+                          productImage: imageUrl,
+                        )
+                      : null,
+                  icon: const Icon(Icons.shopping_bag_outlined),
+                  label: Text(
+                    availableQuantity > 0 ? 'Buy Now' : 'Out of Stock',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: gold,
+                    foregroundColor: navy,
+                    disabledBackgroundColor: Colors.grey.shade700,
+                    disabledForegroundColor: Colors.white54,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -428,5 +476,232 @@ class ProductDetailsScreen extends StatelessWidget {
     }
 
     return value.toStringAsFixed(2);
+  }
+
+  Future<void> _showBuyDialog(
+    BuildContext context, {
+    required String productId,
+    required String productName,
+    required String artisanId,
+    required double price,
+    required int availableQuantity,
+    required String productImage,
+  }) async {
+    int selectedQuantity = 1;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final double totalAmount = price * selectedQuantity;
+
+            return AlertDialog(
+              backgroundColor: cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                'Place Order',
+                style: TextStyle(color: cream, fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    productName,
+                    style: const TextStyle(
+                      color: cream,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    '₹${_formatNumber(price)} per item',
+                    style: TextStyle(
+                      color: cream.withOpacity(0.65),
+                      fontSize: 13,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    'Quantity',
+                    style: TextStyle(color: cream, fontWeight: FontWeight.w600),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: selectedQuantity > 1
+                            ? () {
+                                setDialogState(() {
+                                  selectedQuantity--;
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.remove_circle_outline),
+                        color: gold,
+                      ),
+
+                      Container(
+                        width: 55,
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$selectedQuantity',
+                          style: const TextStyle(
+                            color: cream,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                      IconButton(
+                        onPressed: selectedQuantity < availableQuantity
+                            ? () {
+                                setDialogState(() {
+                                  selectedQuantity++;
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.add_circle_outline),
+                        color: gold,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: navy,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Total',
+                          style: TextStyle(
+                            color: cream,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '₹${_formatNumber(totalAmount)}',
+                          style: const TextStyle(
+                            color: gold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: cream.withOpacity(0.7)),
+                  ),
+                ),
+
+                ElevatedButton(
+                  onPressed: _isPlacingOrder
+                      ? null
+                      : () async {
+                          Navigator.pop(dialogContext);
+
+                          await _placeOrder(
+                            productId: productId,
+                            productName: productName,
+                            artisanId: artisanId,
+                            price: price,
+                            quantity: selectedQuantity,
+                            productImage: productImage,
+                          );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: gold,
+                    foregroundColor: navy,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Confirm Order',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _placeOrder({
+    required String productId,
+    required String productName,
+    required String artisanId,
+    required double price,
+    required int quantity,
+    required String productImage,
+  }) async {
+    setState(() {
+      _isPlacingOrder = true;
+    });
+
+    try {
+      final orderId = await _orderService.createOrder(
+        productId: productId,
+        productName: productName,
+        artisanId: artisanId,
+        price: price,
+        quantity: quantity,
+        productImage: productImage,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Order placed successfully!\nOrder ID: $orderId'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to place order: $e'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPlacingOrder = false;
+        });
+      }
+    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../services/smart_pricing_service.dart';
 import '../../services/ai_product_service.dart';
 import '../../services/cloudinary_service.dart';
 import '../../services/product_service.dart';
@@ -20,7 +21,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final AIProductService _aiProductService = AIProductService();
   final CloudinaryService _cloudinaryService = CloudinaryService();
   final ProductService _productService = ProductService();
-
+  final SmartPricingService _smartPricingService = SmartPricingService();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -30,6 +31,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   File? _selectedImage;
   bool _isProcessing = false;
+  Map<String, dynamic>? _pricingResult;
+  bool _isPricing = false;
 
   static const Color navy = Color(0xFF051A37);
   static const Color cardColor = Color(0xFF0B2A50);
@@ -68,8 +71,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     setState(() {
       _isProcessing = true;
+      _isPricing = true;
+      _pricingResult = null;
     });
-
     try {
       final catalog = await _aiProductService.generateProductCatalog(
         _selectedImage!,
@@ -101,6 +105,54 @@ class _AddProductScreenState extends State<AddProductScreen> {
           _isProcessing = false;
         });
       }
+    }
+  }
+
+  Future<void> _generateSmartPrice() async {
+    if (_nameController.text.trim().isEmpty ||
+        _categoryController.text.trim().isEmpty ||
+        _craftTypeController.text.trim().isEmpty) {
+      _showMessage(
+        'Please generate or enter the product name, category, and craft type first.',
+      );
+      return;
+    }
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    try {
+      final pricing = await _smartPricingService.generateSmartPrice(
+        productName: _nameController.text.trim(),
+        category: _categoryController.text.trim(),
+        craftType: _craftTypeController.text.trim(),
+        description: _descriptionController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      final suggestedPrice = pricing['suggestedPrice'];
+
+      setState(() {
+        _pricingResult = pricing;
+        _isPricing = false;
+        _isProcessing = false;
+      });
+
+      if (suggestedPrice != null) {
+        _priceController.text = suggestedPrice.toString();
+      }
+
+      _showMessage('AI suggested price: ₹${suggestedPrice ?? 'N/A'}');
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isProcessing = false;
+      });
+
+      _showMessage('Smart pricing failed: $e');
     }
   }
 
@@ -394,16 +446,155 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
             const SizedBox(height: 16),
 
-            TextField(
-              controller: _priceController,
-              style: const TextStyle(color: cream),
-              keyboardType: TextInputType.number,
-              decoration: _inputDecoration(
-                'Price',
-                Icons.currency_rupee_rounded,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _priceController,
+                  style: const TextStyle(color: cream),
+                  keyboardType: TextInputType.number,
+                  decoration: _inputDecoration(
+                    'Price',
+                    Icons.currency_rupee_rounded,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _isProcessing ? null : _generateSmartPrice,
+                    icon: const Icon(Icons.auto_awesome, color: gold),
+                    label: const Text(
+                      '✨ AI Smart Price',
+                      style: TextStyle(
+                        color: gold,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: gold.withOpacity(0.6)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
+            if (_isPricing)
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: Center(child: CircularProgressIndicator(color: gold)),
+              ),
+
+            if (_pricingResult != null) ...[
+              const SizedBox(height: 16),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: gold.withOpacity(0.55)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.auto_awesome, color: gold),
+                        SizedBox(width: 8),
+                        Text(
+                          'AI Smart Pricing',
+                          style: TextStyle(
+                            color: cream,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Text(
+                      'Suggested Price',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    Text(
+                      '₹${_pricingResult!['suggestedPrice'] ?? 'N/A'}',
+                      style: const TextStyle(
+                        color: gold,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      'Recommended range: '
+                      '₹${_pricingResult!['minimumPrice'] ?? 'N/A'}'
+                      ' – '
+                      '₹${_pricingResult!['maximumPrice'] ?? 'N/A'}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    Text(
+                      _pricingResult!['reason']?.toString() ?? 'AI generated this estimate based on the product information.',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          final suggestedPrice =
+                              _pricingResult!['suggestedPrice'];
+
+                          if (suggestedPrice != null) {
+                            _priceController.text = suggestedPrice.toString();
+                          }
+
+                          _showMessage('Suggested price applied.');
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: gold,
+                          side: BorderSide(color: gold.withOpacity(0.6)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Use This Price',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
 
             TextField(

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../auth/login_screen.dart';
 import '../../services/artisan_profile_service.dart';
-import 'add_product_screen.dart';
+import '../products/add_product_screen.dart';
 import 'artisan_profile_screen.dart';
 import 'my_products_screen.dart';
 
