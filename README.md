@@ -40,39 +40,41 @@ The platform also focuses on helping B2B buyers discover artisans and their prod
 
 ### 🧑‍🎨 Artisan-Side Features
 
+- Artisan registration and login
+- Artisan profile creation
 - Product-detail input interface
-- Voice-based product description using speech-to-text
-- User-friendly mobile interface
-- AI-assisted product cataloging *(planned/in development)*
+- Product image upload
+- AI-powered product catalog generation
+- AI-assisted smart pricing
 
 ### 🛍️ Buyer-Side Features
 
-- Product discovery and browsing *(planned/in development)*
-- Buyer–artisan connection *(planned/in development)*
-- B2B product exploration *(planned/in development)*
+- Buyer registration and login
+- Product browsing and discovery
 
 ### 🤖 AI-Powered Features
 
 - Automated product-title and description generation
-- AI-based product image enhancement
-- Multilingual voice-based interaction
-- Dynamic pricing assistance
-- Buyer–artisan matching
-
+- AI-assisted product categorization and tagging
+- Smart pricing suggestions for artisan products
+- AI-based product catalog generation
 > **Note:** Some of these features are planned and may not yet be available in the current prototype.
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Category | Technology |
-|---|---|
-| Frontend | Flutter |
-| Programming Language | Dart |
-| Speech-to-Text | Flutter `speech_to_text` package |
-| Platform | Android |
-| Backend | Under development |
-| Database | To be finalized |
+Category - Technology
+
+Frontend: Flutter
+Frontend language: Dart
+Backend: Firebase Cloud Functions
+Backend language: JavaScript
+Runtime: Node.js 24
+AI: Google Gemini API
+Image management: Cloudinary
+Speech-to-text: Flutter speech_to_text package
+
 
 ### Development Tools
 
@@ -89,25 +91,28 @@ The platform also focuses on helping B2B buyers discover artisans and their prod
 
 **Project Status: Prototype under development**
 
-### Currently Implemented or Under Development
+### Currently Implemented
 
-- Flutter-based mobile application interface
-- Artisan dashboard and navigation
-- Initial speech-to-text integration
-- Product-detail input interface
-- Craft details and product information forms
-- Speech-to-text input for describing products
-- AI cataloging interface
-- Product catalog creation workflow
-- Artisan profile and product showcase interface
-- Frontend and backend integration work
+#### Artisan Module
+
+- Artisan registration and login
+- Artisan profile creation
+- Product image upload
+- AI-powered product catalog generation
+- AI-assisted smart pricing
+
+#### Buyer Module
+
+- Buyer registration and login
+- Product browsing
 
 ### Upcoming Work
 
 - Multilingual voice-based interaction
-- Backend and database integration
-- AI-powered product enhancement
-- Smart artisan-buyer matching
+- AI-powered image enhancement
+- Smart artisan–buyer matching
+- Market and demand insights
+- Further backend and database integration
 
 ---
 
@@ -174,9 +179,10 @@ To run the project locally, you need:
 
 ## 🔐 Permissions
 
-The application may require microphone permission for voice-based product descriptions.
+ShilpSetu currently requests the following permissions:
 
-On Android, microphone access is configured through the application’s permission settings.
+- **Internet access:** Required for connecting to online services, APIs, and backend services.
+- **Microphone access:** Required for voice-based input and speech-related features.
 
 ---
 
