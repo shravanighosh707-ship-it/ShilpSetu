@@ -139,42 +139,6 @@ ShilpSetu/
 
 ## ⚙️ Getting Started
 
-### Prerequisites
-
-To run the project locally, you need:
-
-- Flutter SDK
-- Android development environment
-- Git
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/shravanighosh707-ship-it/ShilpSetu.git
-   ```
-
-2. Navigate to the project directory:
-
-   ```bash
-   cd ShilpSetu
-   ```
-
-3. Install the project dependencies:
-
-   ```bash
-   flutter pub get
-   ```
-
-4. Run the application:
-
-   ```bash
-   flutter run
-   ```
-
-> The current version is a work in progress. Some features may be incomplete.
-
 ---
 
 ## 🔐 Permissions
