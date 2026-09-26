@@ -1,8 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import 'dart:typed_data';
 
 import '../../services/smart_pricing_service.dart';
 import '../../services/ai_product_service.dart';
@@ -29,7 +29,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
 
-  File? _selectedImage;
+  XFile? _selectedImage;
   bool _isProcessing = false;
   Map<String, dynamic>? _pricingResult;
   bool _isPricing = false;
@@ -59,7 +59,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (image == null) return;
 
     setState(() {
-      _selectedImage = File(image.path);
+      _selectedImage = image;
     });
   }
 
@@ -362,11 +362,33 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       )
                     : ClipRRect(
                         borderRadius: BorderRadius.circular(20),
-                        child: Image.file(
-                          _selectedImage!,
-                          width: double.infinity,
-                          height: 220,
-                          fit: BoxFit.cover,
+                        child: FutureBuilder<Uint8List>(
+                          future: _selectedImage!.readAsBytes(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+
+                            if (snapshot.hasError || !snapshot.hasData) {
+                              return const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: Colors.white54,
+                                  size: 50,
+                                ),
+                              );
+                            }
+
+                            return Image.memory(
+                              snapshot.data!,
+                              width: double.infinity,
+                              height: 220,
+                              fit: BoxFit.cover,
+                            );
+                          },
                         ),
                       ),
               ),

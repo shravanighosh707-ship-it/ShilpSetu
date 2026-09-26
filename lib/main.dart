@@ -8,17 +8,19 @@ import 'features/auth/login_screen.dart';
 import 'features/products/add_product_screen.dart';
 import 'firebase_options.dart';
 
+import 'package:flutter/foundation.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   if (const bool.fromEnvironment('USE_FIREBASE_EMULATORS')) {
-    FirebaseAuth.instance.useAuthEmulator('10.0.2.2', 9099);
-    FirebaseFunctions.instance.useFunctionsEmulator('10.0.2.2', 5001);
-    FirebaseFirestore.instance.useFirestoreEmulator('10.0.2.2', 8080);
-  }
+    final emulatorHost = kIsWeb ? '127.0.0.1' : '10.0.2.2';
 
+    FirebaseAuth.instance.useAuthEmulator(emulatorHost, 9099);
+    FirebaseFunctions.instance.useFunctionsEmulator(emulatorHost, 5001);
+    FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
+  }
   runApp(const ShilpSetuApp());
 }
 

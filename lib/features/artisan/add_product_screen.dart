@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final priceController = TextEditingController();
   final quantityController = TextEditingController();
 
-  File? selectedImage;
+  XFile? selectedImage;
 
   bool isProcessing = false;
   String message = '';
@@ -48,7 +48,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (image == null) return;
 
     setState(() {
-      selectedImage = File(image.path);
+      selectedImage = image;
     });
   }
 
@@ -317,11 +317,33 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       )
                     : ClipRRect(
                         borderRadius: BorderRadius.circular(20),
-                        child: Image.file(
-                          selectedImage!,
-                          width: double.infinity,
-                          height: 220,
-                          fit: BoxFit.cover,
+                        child: FutureBuilder<Uint8List>(
+                          future: selectedImage!.readAsBytes(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+
+                            if (snapshot.hasError || !snapshot.hasData) {
+                              return const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: Colors.white54,
+                                  size: 50,
+                                ),
+                              );
+                            }
+
+                            return Image.memory(
+                              snapshot.data!,
+                              width: double.infinity,
+                              height: 220,
+                              fit: BoxFit.cover,
+                            );
+                          },
                         ),
                       ),
               ),

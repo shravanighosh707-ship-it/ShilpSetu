@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AIProductService {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
-  Future<Map<String, dynamic>> generateProductCatalog(File image) async {
+  Future<Map<String, dynamic>> generateProductCatalog(XFile image) async {
     final bytes = await image.readAsBytes();
     final imageBase64 = base64Encode(bytes);
 
